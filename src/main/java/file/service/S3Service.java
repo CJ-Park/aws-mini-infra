@@ -1,6 +1,7 @@
 package file.service;
 
 import com.amazonaws.services.s3.Headers;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,25 +65,26 @@ public class S3Service {
 				.attachmentOriginalFileName(attachmentOriginalFileName)
 				.build();
 
-		Long fileNo = fileRepository.save(attachmentFile).getAttachmentFileNo();
+		AttachmentFile saveFile = fileRepository.save(attachmentFile);
 
-		if (fileNo != null) {
-			// 원하는 경로에 파일 저장 -> S3 전송 및 저장 (putObject)
-			File uploadFile = new File(filePath);
-			file.transferTo(uploadFile);
+        // 원하는 경로에 파일 저장 -> S3 전송 및 저장 (putObject)
+        File uploadFile = new File(filePath);
+        file.transferTo(uploadFile);
 
-			// S3 전송 및 저장
-			// bucketName
-			// key : bucket 내부에 객체가 저장되는 경로 + 파일명
-			String s3Key = DIR_NAME + DIR_DELIMITER + uploadFile.getName();
-			amazonS3.putObject(bucketName, s3Key, uploadFile);
+        // S3 전송 및 저장
+        // bucketName
+        // key : bucket 내부에 객체가 저장되는 경로 + 파일명
+        String s3Key = DIR_NAME + DIR_DELIMITER + uploadFile.getName();
+        amazonS3.putObject(bucketName, s3Key, uploadFile);
 
-			if (uploadFile.exists()) {
-				Files.delete(uploadFile.toPath());
-				System.out.println("로컬 파일 삭제 완료");
-			}
-		}
-	}
+		String pathUrl = amazonS3.getUrl(bucketName, s3Key).toString();
+		saveFile.setFilePath(pathUrl);
+
+		if (uploadFile.exists()) {
+            Files.delete(uploadFile.toPath());
+            System.out.println("로컬 파일 삭제 완료");
+        }
+    }
 	
 	// 파일 다운로드
 	@Transactional
