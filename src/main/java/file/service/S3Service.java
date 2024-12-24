@@ -50,7 +50,7 @@ public class S3Service {
 		}
 
 		// DB 저장
-		String path = "/home/ubuntu/app/s3_data/" + DIR_NAME;
+		String path = "/home/ubuntu/app/" + DIR_NAME;
 		String attachmentOriginalFileName = file.getOriginalFilename();
 		String uuid = UUID.randomUUID().toString();
 		String attachmentFileName = uuid + DELIMITER + attachmentOriginalFileName;
